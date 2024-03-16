@@ -17,6 +17,7 @@ from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.response.notebook_utils import display_response
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.vector_stores.chroma import ChromaVectorStore
+from flask import Flask, request, jsonify
 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -93,10 +94,15 @@ query_engine = RetrieverQueryEngine.from_args(
     llm=llm,
 )
 
+# Initialize Flask
+app = Flask(__name__)
 
-# Users Query
-response = query_engine.query(
-    "What is the impact of climate change on the ocean?"
-)
+@app.route('/query', methods=['POST'])
+def handle_query():
+    data = request.get_json()
+    user_query = data['query']
+    response = query_engine.query(user_query)
+    return jsonify(response)
 
-display_response(response)
+if __name__ == '__main__':
+    app.run(port=5000)
